@@ -69,6 +69,9 @@
         [tableview registerClass:[UITableViewCell class] forCellReuseIdentifier:@"UITableViewCell"];
         tableview.tableFooterView=[UIView new];
         tableview.separatorStyle=UITableViewCellSeparatorStyleNone;
+        tableview.estimatedRowHeight = 0;
+        tableview.estimatedSectionHeaderHeight = 0;
+        tableview.estimatedSectionFooterHeight = 0;
         tableview;
     });
     [self addSubview:_tableview];
@@ -114,10 +117,9 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell" forIndexPath:indexPath];
     cell.backgroundColor=[UIColor clearColor];
-    cell.tintColor = kColorBrandGreen;
     
     [cell.contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    UILabel *titleL = [UILabel labelWithFont:[UIFont systemFontOfSize:15] textColor:indexPath.row == _selectIndex? kColorBrandGreen: kColor222];
+    UILabel *titleL = [UILabel labelWithFont:[UIFont systemFontOfSize:15] textColor:indexPath.row == _selectIndex? kColorLightBlue: kColor222];
     titleL.text = _items[indexPath.row];
     [cell.contentView addSubview:titleL];
     [titleL mas_makeConstraints:^(MASConstraintMaker *make) {

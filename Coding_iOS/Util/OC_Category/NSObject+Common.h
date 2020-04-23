@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <MBProgressHUD/MBProgressHUD.h>
+#import <SDCAlertView/SDCAlertController.h>
 
 @interface NSObject (Common)
 
@@ -22,11 +23,24 @@
 + (void)showStatusBarErrorStr:(NSString *)errorStr;
 + (void)showStatusBarError:(NSError *)error;
 + (void)showCaptchaViewParams:(NSMutableDictionary *)params;
++ (void)showCaptchaViewParams:(NSMutableDictionary *)params success:(void (^)())block;
 
 #pragma mark BaseURL
 + (NSString *)baseURLStr;
 + (BOOL)baseURLStrIsProduction;
 + (void)changeBaseURLStrTo:(NSString *)baseURLStr;
+
++ (NSString *)e_URLStr;
+
++ (NSString *)baseCompanySuffixStr;
++ (void)changeBaseCompanySuffixStrTo:(NSString *)companySuffixStr;
++ (NSString *)baseCompany;
++ (void)changeBaseCompanyTo:(NSString *)company;
+
++ (NSNumber *)isPrivateCloud;
++ (void)setupIsPrivateCloud:(NSNumber *)isPrivateCloud;
++ (NSString *)privateCloud;
++ (void)changePrivateCloudTo:(NSString *)privateCloud;
 
 #pragma mark File M
 //获取fileName的完整地址
@@ -49,5 +63,9 @@
 #pragma mark NetError
 -(id)handleResponse:(id)responseJSON;
 -(id)handleResponse:(id)responseJSON autoShowError:(BOOL)autoShowError;
+
+#pragma Other
++ (void)logCookies;
++ (void)preCookieHandle;
 
 @end

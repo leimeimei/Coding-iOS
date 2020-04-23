@@ -11,6 +11,8 @@
 #define kTagBadgePointView  1001
 #define kTagLineView 1007
 #import <objc/runtime.h>
+#import "YLImageView.h"
+#import "YLGIFImage.h"
 
 #import "Login.h"
 #import "User.h"
@@ -105,7 +107,7 @@ static char LoadingViewKey, BlankPageViewKey;
     UIView *badgeView = [[UIView alloc]init];
     badgeView.tag = kTagBadgePointView;
     badgeView.layer.cornerRadius = pointRadius;
-    badgeView.backgroundColor = [UIColor colorWithHexString:@"0xf75388"];
+    badgeView.backgroundColor = [UIColor colorWithHexString:@"0xFF0000"];
     badgeView.frame = CGRectMake(0, 0, 2 * pointRadius, 2 * pointRadius);
     badgeView.center = point;
     [self addSubview:badgeView];
@@ -204,7 +206,7 @@ static char LoadingViewKey, BlankPageViewKey;
 - (void)setSubScrollsToTop:(BOOL)scrollsToTop{
     [[self subviews] enumerateObjectsUsingBlock:^(UIView *obj, NSUInteger idx, BOOL *stop) {
         if ([obj isKindOfClass:[UIScrollView class]]) {
-            [(UIScrollView *)obj setScrollEnabled:scrollsToTop];
+            [(UIScrollView *)obj setScrollsToTop:scrollsToTop];
             *stop = YES;
         }
     }];
@@ -344,10 +346,14 @@ static char LoadingViewKey, BlankPageViewKey;
 }
 
 - (void)beginLoading{
-    for (UIView *aView in [self.blankPageContainer subviews]) {
-        if ([aView isKindOfClass:[EaseBlankPageView class]] && !aView.hidden) {
-            return;
-        }
+//    这里处理有点迷啊。。为啥有空白页就不 loading 了
+//    for (UIView *aView in [self.blankPageContainer subviews]) {
+//        if ([aView isKindOfClass:[EaseBlankPageView class]] && !aView.hidden) {
+//            return;
+//        }
+//    }
+    if (self.blankPageView) {
+        self.blankPageView.hidden = YES;
     }
     
     if (!self.loadingView) { //初始化LoadingView
@@ -355,7 +361,8 @@ static char LoadingViewKey, BlankPageViewKey;
     }
     [self addSubview:self.loadingView];
     [self.loadingView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.self.edges.equalTo(self);
+        make.height.width.centerX.centerY.equalTo(self);
+//        make.self.edges.equalTo(self);//self 是 scrollView 的时候，貌似会跟 contentSize 扯上关系
     }];
     [self.loadingView startAnimating];
 }
@@ -423,23 +430,32 @@ static char LoadingViewKey, BlankPageViewKey;
     self = [super initWithFrame:frame];
     if (self) {
         self.backgroundColor = [UIColor clearColor];
-        _loopView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loading_loop"]];
-        _monkeyView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loading_monkey"]];
-        [_loopView setCenter:self.center];
-        [_monkeyView setCenter:self.center];
-        [self addSubview:_loopView];
+        _monkeyView = [YLImageView new];
+        _monkeyView.image = [YLGIFImage imageNamed:@"loading_monkey@2x.gif"];
         [self addSubview:_monkeyView];
-        [_loopView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.center.equalTo(self);
-        }];
         [_monkeyView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.center.equalTo(self);
+            make.centerX.equalTo(self);
+            make.centerY.equalTo(self).offset(-30);
+            make.size.mas_equalTo(CGSizeMake(100, 100));
         }];
-        
-        _loopAngle = 0.0;
-        _monkeyAlpha = 1.0;
-        _angleStep = 360/3;
-        _alphaStep = 1.0/3.0;
+
+//        _loopView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loading_loop"]];
+//        _monkeyView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"loading_monkey"]];
+//        [_loopView setCenter:self.center];
+//        [_monkeyView setCenter:self.center];
+//        [self addSubview:_loopView];
+//        [self addSubview:_monkeyView];
+//        [_loopView mas_makeConstraints:^(MASConstraintMaker *make) {
+//            make.center.equalTo(self);
+//        }];
+//        [_monkeyView mas_makeConstraints:^(MASConstraintMaker *make) {
+//            make.center.equalTo(self);
+//        }];
+//        
+//        _loopAngle = 0.0;
+//        _monkeyAlpha = 1.0;
+//        _angleStep = 360/3;
+//        _alphaStep = 1.0/3.0;
     }
     return self;
 }
@@ -450,7 +466,7 @@ static char LoadingViewKey, BlankPageViewKey;
         return;
     }
     _isLoading = YES;
-    [self loadingAnimation];
+//    [self loadingAnimation];
 }
 
 - (void)stopAnimating{
@@ -476,7 +492,7 @@ static char LoadingViewKey, BlankPageViewKey;
             [self removeFromSuperview];
 
             _loopAngle = 0.0;
-            _monkeyAlpha = 1,0;
+            _monkeyAlpha = 1.0;
             _alphaStep = ABS(_alphaStep);
             CGAffineTransform loopAngleTransform = CGAffineTransformMakeRotation(_loopAngle * (M_PI / 180.0f));
             _loopView.transform = loopAngleTransform;
@@ -605,6 +621,13 @@ static char LoadingViewKey, BlankPageViewKey;
                 tipStr = @"您还没有发表过冒泡呢～";
             }
                 break;
+            case EaseBlankPageTypeTweetAction://冒泡列表（自己的）。有发冒泡的按钮
+            {
+                imageName = @"blankpage_image_Tweet";
+                tipStr = @"您还没有发表过冒泡呢～";
+                buttonTitle = @"冒个泡吧";
+            }
+                break;
             case EaseBlankPageTypeTweetOther://冒泡列表（别人的）
             {
                 imageName = @"blankpage_image_Tweet";
@@ -620,7 +643,7 @@ static char LoadingViewKey, BlankPageViewKey;
             case EaseBlankPageTypeProject://项目列表（自己的）
             {
                 imageName = @"blankpage_image_Project";
-                titleStr = @"欢迎来到 Coding";
+                titleStr = @"欢迎来到 CODING";
                 tipStr = @"协作从项目开始，赶快创建项目吧";
             }
                 break;
@@ -692,6 +715,12 @@ static char LoadingViewKey, BlankPageViewKey;
                 tipStr = @"还没有订单记录～";
             }
                 break;
+            case EaseBlankPageTypeShopUnPayOrders:
+            {
+                imageName = @"blankpage_image_ShopOrder";
+                tipStr = @"没有待支付的订单记录～";
+            }
+                break;
             case EaseBlankPageTypeShopSendOrders:
             {
                 imageName = @"blankpage_image_ShopOrder";
@@ -712,7 +741,7 @@ static char LoadingViewKey, BlankPageViewKey;
             case EaseBlankPageTypeProject_CREATE:
             case EaseBlankPageTypeProject_JOIN:{
                 imageName = @"blankpage_image_Project";
-                titleStr = @"欢迎来到 Coding";
+                titleStr = @"欢迎来到 CODING";
                 tipStr = @"协作从项目开始，赶快创建项目吧";
                 buttonTitle=@"创建项目";
             }
@@ -748,56 +777,71 @@ static char LoadingViewKey, BlankPageViewKey;
                 tipStr = @"还没有新消息～";
             }
                 break;
+            case EaseBlankPageTypeViewPurchase:{
+                imageName = @"blankpage_image_ShopOrder";
+                tipStr = @"还没有订购记录～";
+            }
+                break;
+            case EaseBlankPageTypeCode:
+            {
+                tipStr = @"当前项目还没有提交过代码呢～";
+            }
+                break;
+            case EaseBlankPageTypeWiki:
+            {
+                tipStr = @"当前项目还没有创建 Wiki～";
+            }
+                break;
             default://其它页面（这里没有提到的页面，都属于其它）
             {
                 tipStr = @"这里什么都没有～";
             }
                 break;
         }
-        imageName = imageName ?: @"blankpage_image_Default";
-        UIButton *bottomBtn = hasError? _reloadButton: _actionButton;
-        _monkeyView.image = [UIImage imageNamed:imageName];
-        _titleLabel.text = titleStr;
-        _tipLabel.text = tipStr;
-        [bottomBtn setTitle:buttonTitle forState:UIControlStateNormal];
-        _titleLabel.hidden = titleStr.length <= 0;
-        bottomBtn.hidden = buttonTitle.length <= 0;
-        
-        //    布局
-        if (ABS(offsetY) > 0) {
-            self.frame = CGRectMake(0, offsetY, self.width, self.height);
-        }
-        [_monkeyView mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-//            if (ABS(offsetY) > 1.0) {
-//                make.top.equalTo(self).offset(offsetY);
-//            }else{
-                make.top.equalTo(self.mas_bottom).multipliedBy(0.15);
-//            }
-            make.size.mas_equalTo(CGSizeMake(160, 160));
-        }];
-        [_titleLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.left.equalTo(self).offset(30);
-            make.right.equalTo(self).offset(-30);
-            make.top.equalTo(_monkeyView.mas_bottom);
-        }];
-        [_tipLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.left.right.equalTo(_titleLabel);
-            if (titleStr.length > 0) {
-                make.top.equalTo(_titleLabel.mas_bottom).offset(10);
-            }else{
-                make.top.equalTo(_monkeyView.mas_bottom);
-            }
-        }];
-        if (buttonTitle.length > 0) {
-            
-        }
-        [bottomBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.size.mas_equalTo(CGSizeMake(130, 44));
-            make.top.equalTo(_tipLabel.mas_bottom).offset(25);
-        }];
     }
+    imageName = imageName ?: @"blankpage_image_Default";
+    UIButton *bottomBtn = hasError? _reloadButton: _actionButton;
+    _monkeyView.image = [UIImage imageNamed:imageName];
+    _titleLabel.text = titleStr;
+    _tipLabel.text = tipStr;
+    [bottomBtn setTitle:buttonTitle forState:UIControlStateNormal];
+    _titleLabel.hidden = titleStr.length <= 0;
+    bottomBtn.hidden = buttonTitle.length <= 0;
+    
+    //    布局
+    if (ABS(offsetY) > 0) {
+        self.frame = CGRectMake(0, offsetY, self.width, self.height);
+    }
+    [_monkeyView mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self);
+        //            if (ABS(offsetY) > 1.0) {
+        //                make.top.equalTo(self).offset(offsetY);
+        //            }else{
+        make.top.equalTo(self.mas_bottom).multipliedBy(0.15);
+        //            }
+        make.size.mas_equalTo(CGSizeMake(160, 160));
+    }];
+    [_titleLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self).offset(30);
+        make.right.equalTo(self).offset(-30);
+        make.top.equalTo(_monkeyView.mas_bottom);
+    }];
+    [_tipLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.equalTo(_titleLabel);
+        if (titleStr.length > 0) {
+            make.top.equalTo(_titleLabel.mas_bottom).offset(10);
+        }else{
+            make.top.equalTo(_monkeyView.mas_bottom);
+        }
+    }];
+    if (buttonTitle.length > 0) {
+        
+    }
+    [bottomBtn mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self);
+        make.size.mas_equalTo(CGSizeMake(130, 44));
+        make.top.equalTo(_tipLabel.mas_bottom).offset(25);
+    }];
 }
 
 - (void)reloadButtonClicked:(id)sender{

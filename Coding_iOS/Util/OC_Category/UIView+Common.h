@@ -21,6 +21,7 @@ typedef NS_ENUM(NSInteger, EaseBlankPageType)
     EaseBlankPageTypeTask,
     EaseBlankPageTypeTopic,
     EaseBlankPageTypeTweet,
+    EaseBlankPageTypeTweetAction,
     EaseBlankPageTypeTweetOther,
     EaseBlankPageTypeTweetProject,
     EaseBlankPageTypeProject,
@@ -36,6 +37,7 @@ typedef NS_ENUM(NSInteger, EaseBlankPageType)
     EaseBlankPageTypeFileTypeCannotSupport,
     EaseBlankPageTypeViewTips,
     EaseBlankPageTypeShopOrders,
+    EaseBlankPageTypeShopUnPayOrders,
     EaseBlankPageTypeShopSendOrders,
     EaseBlankPageTypeShopUnSendOrders,
     EaseBlankPageTypeNoExchangeGoods,
@@ -48,6 +50,9 @@ typedef NS_ENUM(NSInteger, EaseBlankPageType)
     EaseBlankPageTypeTeam,
     EaseBlankPageTypeFile,
     EaseBlankPageTypeMessageList,
+    EaseBlankPageTypeViewPurchase,
+    EaseBlankPageTypeCode,
+    EaseBlankPageTypeWiki,
 };
 
 typedef NS_ENUM(NSInteger, BadgePositionType) {

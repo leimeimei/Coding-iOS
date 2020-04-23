@@ -50,6 +50,9 @@
         UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
         tableView.contentInset = insets;
         tableView.scrollIndicatorInsets = insets;
+        tableView.estimatedRowHeight = 0;
+        tableView.estimatedSectionHeaderHeight = 0;
+        tableView.estimatedSectionFooterHeight = 0;
         tableView;
     });
     _myRefreshControl = [[ODRefreshControl alloc] initInScrollView:self.myTableView];
@@ -62,7 +65,7 @@
     self.selectedIndex = 0;
     
     //初始化过滤目录
-    _myFliterMenu = [[EAFliterMenu alloc] initWithFrame:CGRectMake(0, 64, kScreen_Width, kScreen_Height - 64) items:[self titleList]];
+    _myFliterMenu = [[EAFliterMenu alloc] initWithFrame:CGRectMake(0, 44 + kSafeArea_Top, kScreen_Width, kScreen_Height - (44 + kSafeArea_Top)) items:[self titleList]];
     _myFliterMenu.clickBlock = ^(NSInteger selectIndex){
         if (weakSelf.selectedIndex != selectIndex) {
             weakSelf.selectedIndex = selectIndex;
@@ -209,7 +212,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    return [MRPRListCell cellHeight];
+    return [MRPRListCell cellHeightWithObj:[[self curMRPRS].list objectAtIndex:indexPath.row]];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{

@@ -25,6 +25,7 @@
     [self configRightNavBtn];
     
     _listView = [[ProjectCodeListView alloc] initWithFrame:self.view.bounds project:_myProject andCodeTree:_myCodeTree];
+    _listView.hideBranchTagButton = _hideBranchTagButton;
     __weak typeof(self) weakSelf = self;
     _listView.codeTreeFileOfRefBlock = ^(CodeTree_File *curCodeTreeFile, NSString *ref){
         [weakSelf goToVCWith:curCodeTreeFile andRef:ref];
@@ -45,8 +46,15 @@
 }
 
 - (void)rightNavBtnClicked{
+    NSMutableArray *actionTitles = @[@"上传图片", @"创建文本文件", @"查看提交记录", @"退出代码查看"].mutableCopy;
+    if (!self.myCodeTree.can_edit) {
+        [actionTitles removeObjectsInRange:NSMakeRange(0, 2)];
+    }
     __weak typeof(self) weakSelf = self;
-    [[UIActionSheet bk_actionSheetCustomWithTitle:nil buttonTitles:@[@"上传图片", @"创建文本文件", @"查看提交记录", @"退出代码查看"] destructiveTitle:nil cancelTitle:@"取消" andDidDismissBlock:^(UIActionSheet *sheet, NSInteger index) {
+    [[UIAlertController ea_actionSheetCustomWithTitle:nil buttonTitles:actionTitles destructiveTitle:nil cancelTitle:@"取消" andDidDismissBlock:^(UIAlertAction *action, NSInteger index) {
+        if (!weakSelf.myCodeTree.can_edit) {
+            index += 2;
+        }
         if (index == 0) {
             [weakSelf.listView uploadImageClicked];
         }else if (index == 1){
@@ -67,6 +75,7 @@
         CodeListViewController *vc = [[CodeListViewController alloc] init];
         vc.myProject = _myProject;
         vc.myCodeTree = nextCodeTree;
+        vc.hideBranchTagButton = self.hideBranchTagButton;
         [self.navigationController pushViewController:vc animated:YES];
     }else if ([@[@"file", @"image", @"sym_link", @"executable"] containsObject:codeTreeFile.mode]){//文件
         CodeFile *nextCodeFile = [CodeFile codeFileWithRef:ref andPath:codeTreeFile.path];
